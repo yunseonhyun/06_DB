@@ -294,7 +294,6 @@ WHERE salary < 40000000 OR salary > 80000000;
 SELECT emp_id, full_name, salary
 FROM employees
 WHERE salary NOT BETWEEN 40000000 AND 80000000;
-WHERE salary NOT BETWEEN 40000000 AND 80000000;
 
 -- BETWEEN 구문 이용해서
 -- EMPLOYEES 테이블에서
