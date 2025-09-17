@@ -188,3 +188,21 @@ FROM employees E
 JOIN departments D ON E.dept_id = D.dept_id;
 
 
+-- employees 테이블에서 부서 코드가 DEV인 사원의 수
+-- WHERE 절로 변경
+-- WHERE AND
+SELECT count(*)
+FROM employees E, departments D 
+WHERE E.dept_id = D.dept_id AND D.dept_code = 'DEV';
+
+-- 테이블에 존재하는 부서코드의 수를 조회 중복없이 조회
+-- WHERE 절로 변경
+SELECT count(DISTINCT D.dept_code)
+FROM employees E, departments D 
+WHERE E.dept_id = D.dept_id;
+
+-- employees 테이블에 존재하는 남자 사원의 수
+SELECT count(gender) 
+FROM employees
+WHERE gender = 'M';
+
