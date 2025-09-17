@@ -17,7 +17,7 @@ FROM class_professor;
 -- 문제 4
 -- PROFESSOR 테이블에서 교수번호, 교수명, 학과번호를 조회하되, 
 -- 컬럼명을 각각 '교수코드', '교수이름', '소속학과'로 별칭을 지정하시오.
-SELECT PROFESSOR_NO AS 교수번호, PROFESSOR_NAME AS 교수이름, PROFESSOR_NAME AS 소속학과
+SELECT PROFESSOR_NO AS 교수코드, PROFESSOR_NAME AS 교수이름, department_no AS 소속학과
 FROM professor;
 
 -- 문제 5
@@ -27,7 +27,7 @@ FROM department;
 
 -- 문제 6
 -- 현재 날짜에서 7일 후, 30일 후, 365일 후를 조회하시오.
-SELECT NOW() + interval 7 DAY, NOW() + interval 30 DAY, NOW() + interval 365 DAY;
+SELECT NOW() + INTERVAL 7 DAY, NOW() + INTERVAL 30 DAY, NOW() + INTERVAL 365 DAY;
 
 -- 문제 7
 -- STUDENT 테이블에서 학번 앞에 'STU-'를 붙여서 조회하시오.

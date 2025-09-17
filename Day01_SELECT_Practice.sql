@@ -1,5 +1,13 @@
+/*
+1046 : 스키마(=데이터베이스를 조작할 수 있는 설계도) 선택 하지 않음
+1. 스키마(=데이터베이스)가 만들어져 있는가? 없으면 CREATE DATABASE ID NOT EXISTS 데이터베이스명칭;
+2. 스키마(=데이터베이스)가 존재한다면 ? USE 데이터베이스명칭(=스키마명칭)
+
+1049 : 존재하는 데이터베이스가 없습니다.
+*/
+USE chun_university;
 -- 문제 1
--- chun_university 데이터베이스의 STUDENT 테이블에서 
+--  chun_university 데이터베이스의 STUDENT 테이블에서 
 -- 모든 학생의 학번(STUDENT_NO), 이름(STUDENT_NAME), 주소(STUDENT_ADDRESS)를 조회하시오.
 SELECT STUDENT_NO, STUDENT_NAME, STUDENT_ADDRESS
 FROM STUDENT;
@@ -18,20 +26,24 @@ FROM DEPARTMENT;
 -- 문제 4
 -- STUDENT 테이블에서 모든 학생의 이름, 입학일, 입학일로부터 현재까지의 일수를 조회하시오.
 -- (컬럼명은 각각 '학생이름', '입학일', '재학일수'로 별칭 지정)
-SELECT STUDENT_NAME AS "학생이름", ENTRANCE_DATE AS "입학일", datediff(curdate(), ENTRANCE_DATE) AS "재학일수"
+-- MYSQL에서 자제척으로 개발자를 위해 만든 기능 DATEDIFF() :                현재날짜와 입학일을 계산해서 재학일자를 알려줌
+SELECT STUDENT_NAME AS "학생이름", ENTRANCE_DATE AS "입학일", datediff(NOW(), ENTRANCE_DATE) AS "재학일수"
 FROM STUDENT;
 
 
 -- 문제 5
 -- 현재 시간과 어제, 내일을 조회하시오.
 -- (컬럼명은 각각 '현재시간', '어제', '내일'로 별칭 지정)
-SELECT NOW() AS "현재시간", NOW() - interval 1 DAY AS "어제", now() + interval 1 DAY AS "내일";
+-- 가상텡블 : DUAL DUmmy tAbLe
+-- DUMMY : 인간이나 실제 데이터 대신 사용되는 모형 
+SELECT NOW() AS "현재시간", NOW() - interval 1 DAY AS "어제", now() + interval 1 DAY AS "내일"
+FROM DUAL;
 
 
 -- 문제 6
 -- STUDENT 테이블에서 학번과 이름을 연결하여 하나의 컬럼으로 조회하시오.
 -- (컬럼명은 '학번_이름'으로 별칭 지정)
-SELECT CONCAT(STUDENT_NO, STUDENT_NAME) AS "학번_이름"
+SELECT CONCAT(STUDENT_NO, '_', STUDENT_NAME) AS "학번_이름"
 FROM STUDENT;
 
 -- 문제 7
@@ -87,13 +99,13 @@ WHERE ENTRANCE_DATE LIKE '2005%';
 -- 교수번호, 이름, 학과번호를 조회하시오.
 SELECT PROFESSOR_NO, PROFESSOR_NAME, DEPARTMENT_NO
 FROM PROFESSOR
-WHERE DEPARTMENT_NO != 'NULL';
+WHERE DEPARTMENT_NO IS NOT NULL;
 
 
 -- 문제 15
 -- CLASS 테이블에서 과목유형(CLASS_TYPE)이 '전공필수'인 과목의 
 -- 과목번호, 과목명, 과목유형을 조회하시오.
-SELECT DEPARTMENT_NO, CLASS_NAME, CLASS_TYPE
+SELECT CLASS_NO, CLASS_NAME, CLASS_TYPE
 FROM CLASS
 WHERE CLASS_TYPE = "전공필수";
 
@@ -111,7 +123,7 @@ WHERE STUDENT_ADDRESS LIKE '서울시%';
 -- 학번, 과목번호, 성적을 조회하시오.
 SELECT STUDENT_NO, CLASS_NO, POINT
 FROM GRADE
-WHERE 3.0 <= POINT AND POINT <= 4.0;
+WHERE 3.0 <= POINT AND POINT < 4.0;
 
 
 -- 문제 18
