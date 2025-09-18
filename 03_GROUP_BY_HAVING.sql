@@ -146,12 +146,12 @@ GROUP BY HAVING = 함수(COUNT, AVG, SUM, MIN, MAX 등) 특정 그룹의 숫자 
 
 */
 
--- 평균 급여가 70000000만원 이상인 부서 조회
+-- 평균 급여가 80000000만원 이상인 부서 조회
 -- dept_id, salary, employees
 SELECT dept_id, FLOOR(AVG(salary)) 
 FROM employees
 GROUP BY dept_id
-HAVING AVG(salary) >= 70000000;
+HAVING AVG(salary) >= 80000000;
 
 -- 급여 총합이 1억 5천만원 이상인 부서 조회
 SELECT dept_id, SUM(salary) 
@@ -201,7 +201,7 @@ menus(메뉴 테이블)
 메뉴번호, 가게번호,  메뉴명   가격,  인기메뉴여부
 id   , store_id  name  price  is_popular
 *****************************************/
-USE deliver_app;
+USE delivery_app;
 
 SELECT *
 FROM stores;
@@ -220,3 +220,58 @@ SELECT category, AVG(delivery_fee)
 FROM stores
 WHERE delivery_fee IS NOT NULL
 GROUP BY category;
+
+
+# 실습문제
+-- FROM stores
+-- 평점이 4.5 이상인 가게들만 골라서 카테고리별 개수 구하기
+SELECT category, COUNT(*)
+FROM stores
+WHERE rating >= 4.5 -- 치킨 카테고리에서 가게별로 4.5 이상인 가게들만 조회하기
+GROUP BY category;
+
+SELECT category, COUNT(*)
+FROM stores
+-- WHERE rating >= 4.5 -- 치킨 카테고리에서 가게별로 4.5 이상인 가게들만 조회하기
+GROUP BY category
+HAVING AVG(rating) >= 4.5; -- 카테고리별로 평점을 모은 후에 평점이 4.5 이상으로 그룹
+/*
+1164 SELECT문에서 , 다음에 특정 컬럼 명칭 지정 안해줬을 때 발생하는 에러
+*/
+
+-- 배달비가 null이 아닌 가게들만으로 카테고리별 평균 평점 구하기, 
+-- function count round(avg(rating), 2) 
+SELECT category, round(avg(rating), 2)
+FROM stores
+WHERE delivery_fee IS NOT NULL
+GROUP BY category;
+
+
+
+-- 가게가 3개 이상인 카테고리만 보기
+-- 개수를 내림차순 정렬
+SELECT category
+FROM stores
+GROUP BY category
+HAVING COUNT(*) >= 3
+ORDER BY COUNT(*) DESC; 
+
+
+SELECT *
+FROM stores;
+-- 평균 배달비가 3000원 이상인 카테고리 구하기
+SELECT category, AVG(delivery_fee)
+FROM stores
+GROUP BY category
+HAVING AVG(delivery_fee) >= 3000;
+
+-- 가게별로 메뉴가 몇 개씩 존재하는지 조회
+-- 가게명, 카테고리 메뉴 개수 조회
+SELECT menus.id, menus.store_id, menus.name, menus.description, menus.price, menus.is_popular
+FROM menus, stores
+WHERE menus.store_id = stores.id;
+
+SELECT stores.category, COUNT(*)
+FROM menus, stores
+WHERE menus.store_id = stores.id
+GROUP BY stores.category;

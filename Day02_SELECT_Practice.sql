@@ -1,8 +1,8 @@
 USE chun_university;
 -- 문제 1
 -- CLASS 테이블에서 모든 과목의 과목번호, 과목명, 학과번호를 조회하시오.
-SELECT CLASS_NO, CLASS_NAME, DEPARTMENT_NO
-FROM class;
+SELECT CLASS_NO, CLA	SS_NAME, DEPARTMENT_NO
+FROM chun_university.class;
 
 -- 문제 2
 -- GRADE 테이블의 모든 성적 데이터를 조회하시오.
