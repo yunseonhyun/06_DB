@@ -334,6 +334,13 @@ ORDER BY name;
            다중행 서브쿼리 실습문제 (1 ~ 10 문제)
            IN / NOT IN 연산자
 ***********************************************************/
+-- =============================
+-- IN 연산자 포함하고 싶을 때
+-- NOT IN 연산자 제외하고 싶을 때
+-- =============================
+
+
+
 SELECT *  FROM stores;
 SELECT *  FROM menus;
 -- 문제 1: 카테고리별 최고 평점 매장들 조회
@@ -357,9 +364,41 @@ where rating IN (SELECT MAX(rating) FROM stores GROUP BY category);
 
 
 -- 문제 2: 배달비가 가장 저렴한 매장들의 인기 메뉴들 조회
--- 1단계: 가장 저렴한 배달비 매장 ID들 확인
+-- 1단계: 매장들 중에서 가장 저렴한 배달비 확인
+SELECT MIN(delivery_fee) FROM stores; -- MIN() 함수에서 자동으로 NULL 값은 생략된다.
+-- > 2000원 나온 결과
+-- WHERE 의 특성 ErroeCode: 1111
+-- WHERE 절에는 MIN() MAX() AVG() 같은 함수를 직접적으로 사용할 수 없음
+-- where 절은 테이블의 각 행을 하나씩 필터링 하는 단계
+-- MIN() 함수는 where절에 필터링이 끝난 다음에 데이터를 그룹화해서 최소값을 계산하는 함수
+-- WHERE 절이 실행되는 시점에는 아직 min(delivery_fee) 값이 무엇인지 알 수 없기 때문에 문제가 발생
+
+SELECT id
+FROM stores
+WHERE delivery_fee = (SELECT MIN(delivery_fee) FROM stores);
+
 -- 2단계: 1단계 결과를 조합하여 해당 매장들의 인기 메뉴들 가져오기
 -- JOIN stores s ON m.store_id = s.id
+SELECT *
+FROM menus
+WHERE store_id IN (SELECT id
+FROM stores
+WHERE delivery_fee = (SELECT MIN(delivery_fee) FROM stores));
+/*
+AND is_popular = true
+안써도 
+	20	8	맵슐랭	매콤달콤한 소스에 마요네즈가 더해진 치킨	19000	1
+	31	14	블랙타이거 슈림프 피자 (L)	통통한 블랙타이거 슈림프가 가득 올라간 피자	35900	1
+	32	14	포테이토 피자 (L)	고소한 감자와 부드러운 마요네즈의 조화	27900	1
+	33	14	치즈 볼로네제 스파게티	진한 볼로네제 소스와 치즈의 만남	9800	1
+	36	17	고구마 피자 (L)	달콤한 고구마 무스와 토핑이 듬뿍	28900	1
+    출력결과로 is_popular가 true인 것들만 나오는 이유는
+    현재 데이터가 모두 is_popular만 존재하기 때문!
+    데이터가 추가적으로 is_popular가 false인 데이터가 들어온다면
+    AND is_popular = true; 필수로 작성해야 1인 데이터만 조회가 될 것
+    true = 1
+    false = 0
+*/
 
 -- 문제 4: 15000원 이상 메뉴가 없는 매장들 조회
 -- 1단계: 15000원 이상 메뉴를 가진 매장 ID들 확인
@@ -391,7 +430,7 @@ SELECT DISTINCT store_id
 FROM menus
 WHERE description IS NOT NULL;
 -- 2단계: 1단계 결과에 해당하지 않는 매장들 가져오기 (단, 메뉴가 있는 매장만)
-SELECT DISTINCT *
+SELECT DISTINCT name
 FROM stores
 WHERE id NOT IN (SELECT DISTINCT store_id
 FROM menus
@@ -473,7 +512,48 @@ WHERE menus.store_id = stores.id AND stores.id IN (SELECT store_id FROM menus WH
 
 -- *********************************************
 
+-- =============================
+-- ANY 연산자 하나라도 조건을 만족하면 참
+-- 여러 값 중 하나라도 만족하면 TRUE
+-- 치킨 카테고리에서 배달비가 어떤 기준보다 작으면 만족 어떤 기준보다 크면 만족
+-- =============================
 
--- 3. ANY 연산자 - 
+-- 치킨집 중 배달비가 3000원 이하로 저렴한 매장들 확인
+-- 1단계 : 치킨집들의 배달비 확인
+SELECT delivery_fee
+FROM stores
+WHERE category = '치킨'
+AND delivery_fee IS not NULL;
 
--- 4. ALL 연산자 - 
+-- 2단계 : 특정 값보다 작으면 조건 만족
+-- 배달비가 3000원 이하인 매장들 조회
+SELECT *
+FROM stores
+WHERE delivery_fee <= 3000
+AND delivery_fee IS NOT NULL;
+
+-- ANY로 조합하여 치킨 카테고리에서 배달비 중 최저값보다 작은 매장을 만족하는 가게들의 이름, 카테고리 배달비 조회
+SELECT name, category, delivery_fee
+FROM stores
+WHERE delivery_fee <ANY(
+	SELECT delivery_fee
+	FROM stores
+	WHERE category = '치킨'
+	AND delivery_fee IS not NULL) 
+AND delivery_fee IS NOT NULL
+ORDER BY delivery_fee;
+
+
+
+-- =============================
+-- ALL 모든 조건을 만족해야 참
+-- =============================
+
+-- =============================
+-- EXISTS 연산자 존재하는 것을 찾기
+-- =============================
+
+-- =============================
+-- NOT EXISTS 연산자 존재하지 않은 것을 찾기
+-- =============================
+ 
