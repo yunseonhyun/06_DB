@@ -1,10 +1,12 @@
 USE delivery_db;
+SET SQL_SAFE_UPDATES = 0;
+SET SQL_SAFE_UPDATES = 1;
 SELECT * FROM customers;
 -- 문제 1
 -- CUSTOMERS 테이블에 새로운 고객을 추가하시오. (모든 컬럼 포함)
 -- 고객명: 조민수, 이메일: minsoo.jo@gmail.com, 비밀번호: min123!, 전화번호: 010-2468-1357, 주소: 대전시 유성구 대학로 99
 INSERT INTO customers
-		VALUES(null, '조민수', ' minsoo.jo@gmail.com', 'min123!', '010-2468-1357', '대전시 유성구 대학로 99', null);
+		VALUES(null, '조민수', ' minsoo.jo@gmail.com', 'min123!', '010-2468-1357', '대전시 유성구 대학로 99', now());
 
 
 -- 문제 2
@@ -117,12 +119,16 @@ SET delivery_fee = 2000
 WHERE rating <= 4.5;
 
 
-SELECT * FROM orders;
+SELECT * FROM categories;
 -- 문제 15
 -- Korean 카테고리에 속한 모든 매장의 운영시간을 '매일 24시간'으로 변경하시오.
 UPDATE stores
 SET opening_hours = '매일 24시간'
-WHERE stores.category_id = (SELECT category_id FROM categories WHERE category_name = 'Korean');
+WHERE category_id = (SELECT category_id FROM categories WHERE category_name = 'Korean');
+
+-- 매일 12시간과 Chicken은 html에서 소비자가 변경하고자하여 선택하거나 작성한 데이터를 javascript 변수이름을 통해서
+-- java 서버로 전달되고, java에서는 javascript로 전달받은 데이터를 java내부에 설정한 변수이름으로 전달 받은 다음에 
+
 
 -- 문제 16
 -- 새로운 주문을 ORDERS 테이블에 추가하시오.
@@ -132,38 +138,73 @@ INSERT INTO orders(customer_id, store_id, order_status, total_price, delivery_ad
 		VALUES(2, 1, 'Pending', 26000, '서울시 서초구 서초대로 456', '양념 소스 추가 부탁드려요');
 
 
-SELECT * FROM customers;
+SELECT * FROM orders;
 -- 문제 17
 -- 위에서 추가한 주문(가장 최근 주문)의 상태를 'Cooking'으로 변경하시오.
 UPDATE orders
 SET order_status = 'Cooking'
 WHERE order_id = 10;
 
-
+SELECT * FROM customers;
 -- 문제 18
 -- 새로운 고객을 추가하고 해당 고객이 주문하는 시나리오를 완성하시오.
 -- 고객: 신미래, future@email.com, future2024, 010-2024-2025, 경기도 성남시 분당구 판교로 500
 -- 주문: 스타벅스 판교점에서 아이스 아메리카노 2잔, 총 13200원, 주문상태 Pending
-INSERT INTO customers
-		VALUES(customer_name, email,)
+INSERT INTO CUSTOMERS (customer_name, email, password, phone, address) 
+VALUES ('신미래', 'future@email.com', 'future2024', '010-2024-2025', '경기도 성남시 분당구 판교로 500');
 
+INSERT INTO ORDERS (customer_id, store_id, order_status, total_price, delivery_address) 
+VALUES (13, 7, 'Pending', 13200, '경기도 성남시 분당구 판교로 500');
+
+SELECT * FROM menus;
 -- 문제 19
 -- '동대문엽기떡볶이 신림점' 매장의 모든 메뉴 가격을 10% 인상하시오. (가격 × 1.1로 계산)
+UPDATE MENUS 
+SET price = price * 1.1 
+WHERE store_id = (SELECT store_id FROM stores WHERE store_name = '동대문엽기떡볶이 신림점');
 
--- 문제 20
+
+UPDATE menus
+SET price = 14000
+WHERE menu_id = 12;
+
+UPDATE menus
+SET price = 2000
+WHERE menu_id = 14;
+
+SELECT * FROM menus;
+-- 문제 20 / 안됨.
 -- 전화번호가 등록되지 않은(NULL) 모든 고객의 전화번호를 '미등록'으로 변경하시오.
+UPDATE CUSTOMERS 
+SET phone = '미등록' 
+WHERE phone IS NULL;
 
 -- 문제 21
 -- 'gmail.com'이 포함된 이메일을 사용하는 고객들의 주소에 '[Gmail 사용자]' 표시를 추가하시오.
+-- UPDATE 구문에 함수 이용해서 수정할 수 있다.
+UPDATE CUSTOMERS 
+SET email = CONCAT('[Gmail 사용자] ', address) 
+WHERE email LIKE '%gmail.com';
 
 -- 문제 22
 -- MENUS 테이블에서 설명(description)이 NULL인 메뉴들의 설명을 '설명 준비중'으로 변경하시오.
+UPDATE MENUS 
+SET description = '설명 준비중' 
+WHERE description IS NULL;
+-- ERROR 1062 : UNIQUE는 NULL 값도 모든 컬럼에서 1개만 존재
+-- 빈칸 마저도 특별하게 고유하게 단일로 존재해야하는 데이터!
 
+SELECT * FROM menus;
 -- 문제 23
 -- ORDERS 테이블에서 고객 요청사항(customer_request)이 NULL인 주문들을 '특별 요청 없음'으로 변경하시오.
-
+UPDATE orders
+SET customer_request = '특별 요청 없음' 
+WHERE customer_request IS NULL;
 -- 문제 24
 -- 가격이 20000원 이상인 모든 메뉴를 인기메뉴(is_popular = TRUE)로 변경하시오.
+UPDATE MENUS 
+SET is_popular = TRUE 
+WHERE price >= 20000;
 
 -- 문제 25
 -- 'Delivered' 상태인 주문들 중 총 금액이 30000원 이상인 주문들의 상태를 'VIP_Delivered'로 변경하시오.
