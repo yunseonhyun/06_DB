@@ -385,5 +385,3 @@ FROM store_dev_test
 WHERE name LIKE '%치킨%';
 
 DROP TABLE store_dev_test;
-
-
