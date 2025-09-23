@@ -284,3 +284,104 @@ SET join_date = CURRENT_TIMESTAMP();
 SET SQL_SAFE_UPDATES = 1;
 
 -- 안전모드는 존재하는 이유가 있음 비활성화 해지 하지 말 것
+
+-- 문제 1: username이 'mike_wilson'인 이철수 회원의 이메일 주소를 'mike.w@naver.com'으로 변경하세요.
+UPDATE member
+SET email = 'mike.w@naver.com'
+WHERE username = 'mike_wilson';
+
+-- 문제 2: member_id가 5번인 회원의 상태(status)를 'SUSPENDED'로, 주소(address)를 '확인 필요'로 변경하세요.
+UPDATE member
+SET status = 'SUSPENDED',
+	address = '확인 필요'
+WHERE member_id = 5;
+
+-- 문제 3: 1990년 이전에 태어난 모든 회원의 상태(status)를 'INACTIVE'로 변경하세요.
+UPDATE member
+SET status = 'INACTIVE'
+WHERE birth_date < '1990-12-31';
+
+
+-- ======================================
+-- DELETE
+-- 테이블의 행을 삭제하는 구문
+-- [작성법]
+-- DELETE FROM 테이블명 WHERE 조건설정
+-- 만약 WHERE 조건을 설정하지 않으면 모든 행이 다 삭제됨
+
+-- DELETE 작업을 하기 전에 개발자가 잠시 수행하는 작업 중 하나
+-- 가볍게 저용량의 테이블을 삭제할 경우 많이 사용
+
+-- 테스트용 테이블 생성 (기존 stores 테이블 복사)
+CREATE TABLE stores_copy AS SELECT * FROM stores;
+-- 테스트용 테이블 삭제
+DROP TABLE stores_copy;
+-- ======================================
+
+use delivery_app;
+CREATE TABLE stores_copy AS SELECT * FROM stores;
+SELECT @sql_mode; -- sql에서 아무런 설정이 되어있지 않는 상태
+
+SELECT * 
+FROM stores_copy;
+
+-- member 테이블은 null이 되고, stores_copy null이 안되는 이유
+-- member 직접적으로 개발자가 create table부터 모두 작성해서 만든 sql 테이블 형태
+-- stores_copy는 만들어진 테이블을 가볍게 복제한 상태 
+-- auto_increment와 같은 컬럼 설정과 같이 세세한 특징은 복제 안됨
+-- 속성은 추가로 설정해야함
+-- 속성까지 모두 복제하겠다
+CREATE TABLE stores_copy_2 LIKE stores;
+INSERT INTO stores_copy_2 SELECT  * FROM stores;
+INSERT INTO stores_copy_2
+VALUES(null, '박말숙치킨', '치킨', '서울시 강남구 테스트로 999', '02-999-9999', 4.8, 3000);
+SELECT * FROM stores_copy_2;
+
+INSERT INTO stores_copy
+-- AUTO INCREMENT NULL 값이 되었는데 오늘은 안되고,
+-- default로 설정하니 데이터 저장이 되었다.
+VALUES(default, '박말숙치킨', '치킨', '서울시 강남구 테스트로 999', '02-999-9999', 4.8, 3000);
+# Error Code: 1048. Column 'id' cannot be null	0.000 sec
+
+SELECT * FROM stores_copy_2;
+-- stores_copy_2
+SELECT * FROM stores_copy_2
+WHERE delivery_fee <= 4000;
+-- 배달비가 4000원 이상인 가게들 삭제
+DELETE
+FROM stores_copy_2
+WHERE delivery_fee >= 4000;
+-- stores_copy_2에서 배달비가 4000원 이상인 가게들 모두 삭제
+
+-- stores_copy_2에서 평점이 4.5미만이고 카테고리가 치킨인 매장 모두 삭제
+DELETE
+FROM stores_copy_2
+WHERE rating < 4.5 AND category = '치킨'; 
+-- 0 row가 뜨면 삭제하는데 문제가 없고, 고객에게 삭제할 데이터가 존재하지 않습니다 전달.
+-- 고객 회원 탈퇴 되었있는지 확인 : 성함 + 연락처    성함 + 이메일
+
+-- stores_copy_2에서 전화번호가 NULL인 매장 삭제
+DELETE 
+FROM stores_copy_2
+WHERE phone IS NULL;
+
+-- stores_copy_2 테이블 자체 모두 삭제
+DROP TABLE stores_copy;
+
+
+-- 속성까지 모두 복제하여 store_dev_test라는 명칭으로 테이블 복제하여 생성
+-- DELETE FROM store_dev_test WHERE을 이용하여 IN 조건으로 1, 2, 3 ID들 매장 모두 삭제
+CREATE TABLE store_dev_test LIKE stores;
+INSERT INTO store_dev_test SELECT * FROM stores;
+SELECT * FROM store_dev_test;
+
+DELETE
+FROM store_dev_test
+WHERE id IN(1, 2, 3);
+
+-- DELETE FROM store_dev_test WHERE 이용해서 이름에 치킨이 앞뒤로 포함된 매장 모두 삭제
+DELETE
+FROM store_dev_test
+WHERE name LIKE '%치킨%';
+
+DROP TABLE store_dev_test;
