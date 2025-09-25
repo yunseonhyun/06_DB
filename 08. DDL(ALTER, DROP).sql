@@ -167,3 +167,36 @@ ALTER TABLE department DROP COLUMN create_date;
 
 -- 특정 컬럼의 명칭 변경 RENAME TO
 ALTER TABLE department RENAME COLUMN dept_name TO dept_title;
+
+-- 테이블 삭제
+-- 다수의 SQL : DROP TABLE 테이블명 [CASCADE CONSTRAINTS]; 
+-- MYSQL : DROP TABLE 테이블명;
+-- 			외래키 활성화 비활성화 루 부모 테이블 삭제여부 결정
+
+USE practice_db;
+DROP TABLE BOOK;
+-- ERROR : 3730 : ORDER_DETAIL 테이블에서 외래키에 의해 참조되고 있음 
+
+-- 방법 3가지 : 자식 -> 부모 순서대로 삭제하거나
+--			  외래키 제약조건만 삭제
+--			  외래키 체크 임시 비활성화를 통해 삭제	
+
+-- 방법 1번을 활용한 삭제 
+DROP TABLE ORDER_DETAIL;
+
+-- practice_db에 있는 테이블 삭제
+-- customer department employee product 모두 삭제
+DROP TABLE customer;
+DROP TABLE department;
+DROP TABLE employee;
+DROP TABLE product;
+
+DROP DATABASE practice_db;
+-- bookstore - 스노우까지 모두 삭제
+DROP DATABASE chun_university;
+DROP DATABASE delivery_app;
+DROP DATABASE delivery_db;
+DROP DATABASE 네이버;
+DROP DATABASE 라인;
+DROP DATABASE 스노우;
+DROP DATABASE employee_management;

@@ -52,6 +52,7 @@ CREATE TABLE ORDER_DETAIL(
     FOREIGN KEY(CUSTOMER_ID) REFERENCES CUSTOMER(CUSTOMER_ID),
     FOREIGN KEY(BOOK_ID) REFERENCES BOOK(BOOK_ID)
 );
+-- 1824 : 외래키를 참조할 테이블이 존재하지 않을 때 발생
 
 -- 8. SELECT
 -- 전체 조회
@@ -88,6 +89,8 @@ SELECT * FROM ORDER_DETAIL;
 DELETE 
 FROM BOOK 
 WHERE BOOK_ID = 'B001';
+-- book 테이블을 참조하는 데이터가 존재해서 발생
+-- 참조하는 데이터의 테이블에서 먼저 자식 데이터들을 삭제한 후 book으로 와서 해당 데이터 삭제
 
 DELETE FROM ORDER_DETAIL WHERE BOOK_ID = 'B001';
 DELETE FROM BOOK WHERE BOOK_ID = 'B001';
@@ -95,6 +98,7 @@ DELETE FROM BOOK WHERE BOOK_ID = 'B001';
 -- 12. 외래키 옵션 설정 후 삭제 진행
 DROP TABLE ORDER_DETAIL;
 
+-- 참조하는 테이블(메인테이블 = 부모테이블) 삭제할 때, 자식 테이블 데이터도 삭제하는 속성
 CREATE TABLE ORDER_DETAIL(
     ORDER_ID VARCHAR(20) PRIMARY KEY,
     CUSTOMER_ID VARCHAR(10),
@@ -113,14 +117,21 @@ CREATE TABLE ORDER_DETAIL(
 INSERT INTO ORDER_DETAIL VALUES ('O002', 'C001', 'B002', 1);
 
 -- 테스트
+-- 삭제를 할 때 B002에 해당하는 모든 데이터를 삭제
+-- > 정말 삭제하시겠습니까? 삭제하시면 연결되어있던 포인트도 함께 삭제됩니다.
+-- > 정말 삭제하시겠습니까? 삭제하시면 연결되어있던 다른 연동 로그인 또한 함께 삭제됩니다.
 DELETE FROM BOOK WHERE BOOK_ID = 'B002';
-
+-- > ON DELETE CASCADE가 연결되어있지 않은 상태라면 
+-- > 정말 삭제하시겠습니까? 삭제하시더라도 기존에 작성한 댓글이나 게시물은 삭제되지 않고 유지됩니다.
+-- > 삭제를 완료하고 게시물이나 댓글을 작성한 유저의 정보를 들어가면 탈퇴한 회원입니다.
+-- 메인(=부모) 테이블의 데이터가 삭제되었을 경우 자식테이블의 데이터는 NULL로 설정할 수 있었음
+-- > ON DELETE SET NULL로 데이터를 유지하되, 메인을 참조하는 컬럼에는 NULL 값으로 설정
 SELECT * FROM ORDER_DETAIL;
 
 -- 15. 제약조건 위반
 INSERT INTO ORDER_DETAIL VALUES ('O003', 'C001', 'B003', 1);
 -- CUSTOMER_ID C999 없음 -> C001, BOOK_ID B001 없음 -> B003
-
+-- 1452 : 참조되는 데이터가 존재하지 않아서 발생하는 문제
 
 
 -- ====================================================================
@@ -164,11 +175,16 @@ INSERT INTO product VALUES
 (2, '마우스', 50000, 'IT'),
 (3, '책상', 300000, '가구');
 
+-- UPDATE는 컬럼내에 존재하는 데이터 변경
+-- ALTER는 데이터 이외의 모든 변경 ALTER
+--			ADD : 속성, 컬럼 추가
+--			MODIFY : 이미 존재하는 컬럼에 속성 추가 제약조건 변경 추가
+
 -- 문제 1: employee 테이블의 emp_id 컬럼을 PRIMARY KEY로 설정
 ALTER TABLE employee ADD PRIMARY KEY(emp_id);
 
 -- 문제 2: employee 테이블의 email 컬럼에 NOT NULL 제약조건 추가
-ALTER TABLE employee MODIFY email VARCHAR(30) NOT NULL;
+ALTER TABLE employee MODIFY email VARCHAR(30) NOT NULL; -- MODIFY는 제약조건 설정할 때 자료형(자료형 크기) 반드시 설정
 
 -- 문제 3: product 테이블의 product_name 컬럼에 NOT NULL 제약조건 추가
 ALTER TABLE product MODIFY product_name VARCHAR(50) NOT NULL;
