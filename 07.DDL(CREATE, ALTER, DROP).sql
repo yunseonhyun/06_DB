@@ -130,7 +130,7 @@ PRODUCT_ID VARCHAR(10) PRIMARY KEY, -- AUTO_INCREMENT 정수만 가능 VARCHAR �
 PRODUCT_NAME VARCHAR(100) NOT NULL,
 PRICE INT CONSTRAINT CK_PRODUCT_PRICE CHECK(PRICE > 0),
 STOCK INT DEFAULT 0 CHECK(STOCK >= 0), -- constraint 제약조건 제약조건명칭은 필수가 아님 작성 안했을 경우 자동완성
-STATUS VARCHAR(20) DEFAULT '판매중' CONSTRAINT CK_PRODUCT_STATUS CHECK(STATUS IN ('판매중', '품절', '단종'))
+STATUS VARCHAR(20) DEFAULT '판매중' CHECK(STATUS IN ('판매중', '품절', '단종'))
 );
 
 CREATE TABLE ORDER_ITEM(
@@ -168,7 +168,7 @@ PRODUCT_ID VARCHAR(10) PRIMARY KEY, -- AUTO_INCREMENT 정수만 가능 VARCHAR �
 PRODUCT_NAME VARCHAR(100) NOT NULL,
 PRICE INT CONSTRAINT CK_PRODUCT_PRICE CHECK(PRICE > 0),
 STOCK INT DEFAULT 0 CHECK(STOCK >= 0), -- constraint 제약조건 제약조건명칭은 필수가 아님 작성 안했을 경우 자동완성
-STATUS VARCHAR(20) DEFAULT '판매중' CONSTRAINT CK_PRODUCT_STATUS CHECK(STATUS IN ('판매중', '품절', '단종'))
+STATUS VARCHAR(20) DEFAULT '판매중' CHECK(STATUS IN ('판매중', '품절', '단종'))
 );
 
 /*
@@ -228,7 +228,7 @@ STUDENT_ID VARCHAR(10) PRIMARY KEY,
 STUDENT_NAME VARCHAR(30) NOT NULL,
 MAJOR VARCHAR(50),
 YEAR INT CHECK(YEAR >= 1 AND YEAR <= 4), -- CHECK 내에 존재하는 YEAR 컬럼명 YEAR 값 제한
-EMAIL VARCHAR(100) UNIQUE
+EMAIL VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE SUBJECT(
@@ -243,6 +243,9 @@ SUBJECT_ID VARCHAR(10),
 SCORE INT CHECK(SCORE >= 0 AND SCORE <= 100),
 SEMESTER VARCHAR(10) NOT NULL,
 SCORE_DATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+CONSTRAINT FK_SCORE_STUDENT_ID FOREIGN KEY (STUDENT_ID) REFERENCES STUDENT(STUDENT_ID),
+CONSTRAINT FK_SCORE_SUBJECT_ID FOREIGN KEY (SUBJECT_ID) REFERENCES SUBJECT(SUBJECT_ID),
+PRIMARY KEY (STUDENT_ID, SUBJECT_ID, SEMESTER)
 
 -- 외래키
 -- 기본 문법
@@ -250,14 +253,11 @@ SCORE_DATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 -- CONSTRAINT   명칭    FOREIGN KEY(컬럼명칭)    REFERENCES   ~
 -- STUDENT 테이블과 SUBJECT 테이블은 SCORE 테이블과 SCORE 테이블 내 데이터가 사라지기 전까지
 -- 연결되어 있는 STUDENT 테이블과 SUBJECT 테이블은 삭제할 수 없다.
-CONSTRAINT FK_SCORE_STUDENT_ID FOREIGN KEY (STUDENT_ID) REFERENCES STUDENT(STUDENT_ID),
-CONSTRAINT FK_SCORE_SUBJECT_ID FOREIGN KEY (SUBJECT_ID) REFERENCES SUBJECT(SUBJECT_ID),
-PRIMARY KEY (STUDENT_ID, SUBJECT_ID, SEMESTER)
+
 );
 -- Error Code: 3813. Column check constraint 'score_chk_1' references other column.	0.000 sec
 -- SCORE INT CHECK(CREDIT >= 0 AND CREDIT <= 100), --> SCORE 컬럼명 제약조건에서 관련없는 CREDIT명칭을 작성했기 떄문
 -- > 같이 수정하면 에러 문제 해결 : SCORE INT CHECK(SCORE >= 0 AND SCORE <= 100)
-
 
 INSERT INTO STUDENT VALUES ('2024001', '김대학', '컴퓨터공학과', 2, 'kim2024@univ.ac.kr');
 INSERT INTO STUDENT VALUES ('2024002', '이공부', '경영학과', 1, 'lee2024@univ.ac.kr');
@@ -280,3 +280,40 @@ INSERT INTO SCORE VALUES ('2024001', 'CS101', 150, '2024-1학기', DEFAULT);
 INSERT INTO SCORE VALUES ('2024001', 'CS101', 90, '2024-1학기', DEFAULT);
 -- Error Code: 1062. Duplicate entry '2024001-CS101-2024-1학기' for key 'score.PRIMARY'	0.000 sec
 -- 학번, 과목, 학기 기본키 중복
+
+-- ALTER NODIFY
+ALTER TABLE STUDENT
+MODIFY EMAIL VARCHAR(100) NOT NULL UNIQUE;
+
+-- 중복된 데이터가 존재하는 상황에서 UNIQUE를 사용할 경우 중복되는 데이터가 존재하기 때문에 컬럼 제약 조건을 수정할 수 없다.
+-- 기존 데이터가 제약조건에 부합하지 않을 경우 발생
+
+-- 데이터를 수정한 다음에 제약조건을 다시 설정
+
+-- 중복된데이터 SELECT 확인
+SELECT EMAIL
+FROM STUDENT
+WHERE EMAIL IS NOT NULL;
+
+-- 중복된 이메일에서 둘 중 한명의 이메일을 수정하거나
+
+-- 모두삭제
+
+-- 데이터가 키 형태가 아닐 경우에는 안전모드 해지 후 가능
+
+SET SQL_SAFE_UPDATES = 0;
+-- Error Code: 1175. You are using safe update mode and you tried to update a table wothout a WHERE that uses a KEY column
+
+-- 두가지방법
+-- 1. 삭제하고자하는 데이터의 하위 데이터에 존재하는 데이터 먼저 삭제 후
+-- 부모 데이터 삭제
+
+-- 2. 외래키 제약 조건을 잠시 종료하고 삭제 (추천하지 않음)
+-- 데이터 ]무결성 조건을 해지할 수 있으므로 실제 DB 서비스에서는 사용 금지
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 3. ON DELETE CASCADE
+-- 부모 테이블에 존재하는 데이터 삭제시 자식 테이블 또한 자동적으로 삭제될 수 있도록 설정 조건
+-- 예를 들어, 배달 어플 - 더조은카페 - 조은 카페메뉴
+-- 더조은카페 폐업 카페메뉴까지 모두 없애야 하는 상황
+-- ON DELETE CASCADE가 만약에 걸려있다면 더조은 카페 폐업과 동시에 메뉴까지 모두 삭제하는 설정alter																																																								
