@@ -42,6 +42,8 @@ SAVEPOINT : 트랜잭션 내에 저장 지점을 정의하며, ROLLBACK 수행 �
 */ 
 -- ==================================
 
+use online_shop;
+
 CREATE TABLE events (
     event_id INT PRIMARY KEY AUTO_INCREMENT,
     event_name VARCHAR(100) NOT NULL,
@@ -95,10 +97,48 @@ SELECT * FROM events;
 -- 박영희씨가 클래스 예약을 시도했지만 좌석이 없어서 실패한 시나리오 
 -- ROLLBACK;
 
-START TRANSACTION; 
+-- CTRL + S는 저장하기와 동시에 COMMIT 상태로 저장됨
+-- START TRANSACTION; 
 -- COMMIT 하기 전까지 유효   어디서부터 어디까지 흐름 추적하고
 -- COMMIT 저장 완료되면 추적을 중단하겠다.
-INSERT INTO attendees
-VALUES (2, '박영희','hee.park@gmail.com');
+-- INSERT INTO attendees VALUES (2, '박영희','hee.park@gmail.com');
+
+-- SELECT * FROM attendees;
+
+-- ROLLBACK;
+
+-- 일부만 성공 savepoint
+-- 담당자가 이민준과 최지아의 예약을 동시에 진행하지만 좌석은 1개뿐이기 때문에
+-- 이민준 성공 최지아씨는 실패
+
+-- 이민준 예약 성공 직후 savepoint 중간 저장 해두기
+-- 최지아 예약이 실패하면 그 중간 저장 지점으로 되돌아가서 이민준씨의 예약만 살리기
+
+START transaction;
+INSERT INTO attendees VALUES(3, '이민준', 'joon@gmail.com');
+SELECT * FROM attendees;
+
+-- 예약하고자 하는 클래스는 동일하므로 수정안함
+UPDATE events
+SET available_seats = available_seats -1 
+WHERE event_id = 1;
+
+-- 예약자 id만 수정
+INSERT INTO bookings(event_id, attendee_id)
+VALUES(1,3);
+
+savepoint booking_joon_ok;
+
+INSERT INTO attendees VALUES (4, '최지아', 'jia@gmail.com');
+
+-- 좌석을 주려 했지만 0개라 실패 박철수씨와 이민준씨가 이미 좌석 예약 완료한 상태
+
+-- 중간 저장 지점인 이민준 성공으로 돌아가기
+ROLLBACK TO SAVEPOINT booking_joon_ok;
+
+-- 이민준씨의 예약이 완료된 시점에서 최종 확정
+COMMIT;
 
 SELECT * FROM attendees;
+
+-- 확인 결과 : 이민준 예약은 완료되었지만, 최지아의 정보는 롤백되어 남아있지 않는다.
